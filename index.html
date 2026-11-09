@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteo 11 PM - 100 Soles</title>
+    <style>
+        :root {
+            --primary-navy: #0B192C;
+            --secondary-blue: #1E3E62;
+            --gold: #D4AF37;
+            --gold-light: #F3CA52;
+            --bg-light: #F8F9FA;
+            --text-dark: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-light); color: var(--text-dark); padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 480px; background: #ffffff; border-radius: 16px; box-shadow: 0 8px 25px rgba(11, 25, 44, 0.12); overflow: hidden; border: 1px solid #e1e8ed; }
+        .header { background-color: var(--primary-navy); color: #ffffff; padding: 20px; text-align: center; border-bottom: 3px solid var(--gold); }
+        .live-badge { display: inline-block; background-color: var(--gold); color: var(--primary-navy); font-size: 0.75rem; font-weight: bold; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; }
+        .header h1 { font-size: 1.4rem; margin-bottom: 5px; font-weight: 700; }
+        .date-display { font-size: 0.85rem; color: #b0c4de; margin-bottom: 15px; text-transform: capitalize; }
+
+        .timer-box { background: rgba(255, 255, 255, 0.1); border: 1px dashed var(--gold); border-radius: 10px; padding: 10px; margin-bottom: 15px; text-align: center; }
+        .timer-box span { font-size: 0.75rem; color: #b0c4de; text-transform: uppercase; display: block; }
+        .timer-countdown { font-size: 1.3rem; font-weight: bold; color: var(--gold-light); font-family: monospace; }
+        .timer-sub { font-size: 0.72rem; color: #b0c4de; margin-top: 4px; }
+
+        .prize-box { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--gold); border-radius: 10px; padding: 10px; display: flex; justify-content: space-around; align-items: center; }
+        .prize-item span { display: block; font-size: 0.75rem; color: #b0c4de; text-transform: uppercase; }
+        .prize-item strong { font-size: 1.1rem; color: var(--gold-light); }
+
+        .content-body { padding: 20px; }
+        .section-title { font-size: 0.95rem; color: var(--primary-navy); margin-bottom: 12px; font-weight: 700; border-left: 3px solid var(--gold); padding-left: 8px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--secondary-blue); }
+        input[type="text"], input[type="tel"], select { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; background: #fff; }
+        input:focus, select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15); }
+        input:disabled { background: #f1f5f9; color: #64748b; }
+
+        .grid-numbers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 15px; background: #f1f5f9; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        .grid-numbers.locked .num-btn { opacity: 0.7; cursor: not-allowed; }
+        .num-btn { width: 100%; aspect-ratio: 1; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; color: var(--text-dark); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+        .num-btn.selected { background-color: var(--primary-navy); color: var(--gold-light); border-color: var(--gold); transform: scale(1.05); }
+        .counter-info { font-size: 0.8rem; text-align: right; color: #64748b; margin-bottom: 15px; font-weight: 600; }
+
+        .action-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .btn-confirm { flex: 2; background: #16a34a; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-edit { flex: 1; background: #dc2626; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; display: none; }
+
+        .notice { background: #eff6ff; border: 1px solid #93c5fd; color: #1e3a8a; padding: 10px 12px; border-radius: 8px; font-size: 0.8rem; margin-bottom: 15px; line-height: 1.4; }
+        .notice.closed { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+
+        .yape-box { background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; text-align: center; }
+        .yape-box p { font-size: 0.85rem; color: #92400e; margin-bottom: 8px; line-height: 1.4; }
+        .yape-number { font-size: 1.1rem; color: #78350f; font-weight: bold; background: #fde68a; display: inline-block; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px; }
+        .code-display { background: white; padding: 10px; border: 1px dashed #d97706; border-radius: 6px; font-family: monospace; font-size: 0.95rem; font-weight: bold; color: #b45309; margin-bottom: 8px; word-break: break-all; }
+        .yape-warning { font-size: 0.72rem; color: #64748b; margin-bottom: 10px; line-height: 1.3; }
+        .copy-btn { background: #d97706; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: bold; }
+
+        .main-menu-btn { width: 100%; background: linear-gradient(135deg, var(--primary-navy), var(--secondary-blue)); color: var(--gold-light); border: none; padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(11, 25, 44, 0.2); }
+        .secondary-menu-btn { width: 100%; background: #ffffff; color: var(--primary-navy); border: 2px solid var(--primary-navy); padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; }
+        .winner-claim-btn { width: 100%; background: #16a34a; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2); }
+
+        .social-container { display: flex; gap: 8px; margin-top: 15px; }
+        .social-btn { flex: 1; display: block; text-align: center; color: white; text-decoration: none; padding: 8px 5px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .wsp-social { background-color: #25D366; }
+        .tg-social { background-color: #0088cc; }
+        .fb-social { background-color: #1877F2; }
+
+        .submit-btn { width: 100%; background: linear-gradient(135deg, var(--primary-navy), var(--secondary-blue)); color: var(--gold-light); border: none; padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 12px rgba(11, 25, 44, 0.2); display: none; }
+        .footer-note { text-align: center; font-size: 0.75rem; color: #64748b; margin-top: 15px; }
+
+        .rules { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; margin-top: 15px; font-size: 0.8rem; }
+        .rules summary { font-weight: 700; color: var(--primary-navy); cursor: pointer; }
+        .rules ul { margin: 8px 0 0 18px; line-height: 1.5; color: #334155; }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .summary-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin: 12px 0 20px; font-size: 0.88rem; }
+        .summary-card ul { list-style: none; }
+        .summary-card li { margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; display: flex; justify-content: space-between; gap: 10px; }
+        .summary-card li:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .summary-card strong { color: var(--primary-navy); text-align: right; word-break: break-all; }
+        .whatsapp-wsp-btn { display: block; text-align: center; background-color: #25D366; color: white; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: bold; margin-top: 15px; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3); }
+
+        .winner-display-box { background: #fefce8; border: 2px solid var(--gold); border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 15px; }
+        .winner-numbers-row { display: flex; justify-content: center; gap: 10px; margin: 10px 0; }
+        .winner-ball { width: 40px; height: 40px; background: var(--primary-navy); color: var(--gold-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; border: 2px solid var(--gold); }
+        .proof-link { font-size: 0.78rem; color: var(--secondary-blue); font-weight: 600; }
+
+        .history-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85rem; }
+        .history-top { display: flex; justify-content: space-between; margin-bottom: 6px; font-weight: bold; color: var(--primary-navy); }
+        .history-balls { display: flex; gap: 5px; }
+        .h-ball { width: 25px; height: 25px; background: var(--primary-navy); color: var(--gold-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; }
+        .empty-msg { text-align: center; color: #64748b; font-size: 0.85rem; padding: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="live-badge">Sorteo 11 PM hoy día</div>
+        <h1>¡Sorteo Diario 100 Soles!</h1>
+        <div class="date-display" id="currentDate">Cargando fecha...</div>
+
+        <div class="timer-box">
+            <span>Tiempo restante para el sorteo:</span>
+            <div class="timer-countdown" id="countdownTimer">--:--:--</div>
+            <div class="timer-sub" id="cierreInfo"></div>
+        </div>
+
+        <div class="prize-box">
+            <div class="prize-item"><span>Inversión</span><strong>S/ 1</strong></div>
+            <div class="prize-item" style="border-left: 1px solid rgba(255,255,255,0.2); border-right: 1px solid rgba(255,255,255,0.2); padding: 0 20px;"><span>Premio</span><strong>S/ 100</strong></div>
+            <div class="prize-item"><span>Selección</span><strong>3 Números</strong></div>
+        </div>
+    </div>
+
+    <div class="content-body">
+
+        <!-- PANTALLA 1: MENÚ PRINCIPAL -->
+        <div id="menuScreen" class="screen active">
+            <div class="winner-display-box">
+                <h3 style="font-size: 0.95rem; color: var(--primary-navy); margin-bottom: 5px;">🏆 Números Ganadores de las 11 PM</h3>
+                <p id="winnerStatusMsg" style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px;">Cargando resultados...</p>
+                <div class="winner-numbers-row" id="winnerBallsContainer">
+                    <div class="winner-ball">?</div>
+                    <div class="winner-ball">?</div>
+                    <div class="winner-ball">?</div>
+                </div>
+                <div id="proofContainer"></div>
+            </div>
+
+            <button type="button" class="main-menu-btn" onclick="switchScreen('formScreen')">🎟️ Quiero Participar</button>
+            <button type="button" class="winner-claim-btn" onclick="switchScreen('claimScreen')">🏆 Soy Ganador y Quiero Reclamar</button>
+            <button type="button" class="secondary-menu-btn" onclick="switchScreen('historyScreen')">📊 Ver Resultados Anteriores</button>
+
+            <details class="rules">
+                <summary>📜 Reglas del sorteo</summary>
+                <ul>
+                    <li>Eliges 3 números distintos del 1 al 20. Ganas si aciertas los 3 (el orden no importa).</li>
+                    <li>Las inscripciones cierran <span class="cierreTexto"></span> antes del sorteo. Lo que llegue después juega en el sorteo del día siguiente.</li>
+                    <li>El sorteo se realiza en vivo a las 11:00 PM (hora de Perú) y el resultado oficial se publica en esta página.</li>
+                    <li>Solo son válidas las jugadas con el Yape de S/ 1 y el código exacto en el concepto.</li>
+                    <!-- ✏️ EDITA ESTA REGLA con lo que tú decidas: -->
+                    <li>Si hay varios ganadores: <strong>[define aquí tu regla, p. ej. cada uno recibe S/ 100]</strong>.</li>
+                </ul>
+            </details>
+
+            <div class="social-container">
+                <a href="https://whatsapp.com/channel/0029VbAG93Z6BIEexDepOD28" target="_blank" rel="noopener" class="social-btn wsp-social">📢 WhatsApp</a>
+                <a href="https://t.me/+lvOyCDlt1LYyZjVh" target="_blank" rel="noopener" class="social-btn tg-social">✈️ Telegram</a>
+                <a href="https://www.facebook.com/profile.php?id=100085133898109" target="_blank" rel="noopener" class="social-btn fb-social">👍 Jakuna Perú</a>
+            </div>
+
+            <div class="footer-note">🎥 Sorteo en vivo · Resultados oficiales publicados aquí</div>
+        </div>
+
+        <!-- PANTALLA 2: FORMULARIO DE PARTICIPACIÓN -->
+        <div id="formScreen" class="screen">
+            <div class="notice" id="drawNotice"></div>
+
+            <div class="section-title">Tus Datos</div>
+            <form id="participationForm" onsubmit="handleFinalSubmit(event)">
+                <div class="form-group">
+                    <label for="celular">Número de Celular</label>
+                    <input type="tel" id="celular" maxlength="9" inputmode="numeric" placeholder="Ej. 987654321" required>
+                </div>
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" placeholder="Tu nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="apellido">Apellido</label>
+                    <input type="text" id="apellido" placeholder="Tu apellido" required>
+                </div>
+
+                <div class="section-title" style="margin-top: 20px;">Elige tus 3 números (1 al 20)</div>
+                <div class="counter-info" id="counterText">Seleccionados: 0 / 3</div>
+
+                <div class="grid-numbers" id="numberGrid"></div>
+
+                <div class="action-row">
+                    <button type="button" class="btn-confirm" id="confirmBtn" onclick="confirmNumbers()">Confirmar Números</button>
+                    <button type="button" class="btn-edit" id="editBtn" onclick="editNumbers()">Editar</button>
+                </div>
+
+                <div class="yape-box" id="yapeBox">
+                    <p>Haz tu yapeo de <strong>S/ 1</strong> al número:</p>
+                    <div class="yape-number">📱 955 480 091</div>
+                    <p>Y coloca exactamente este mensaje en el concepto:</p>
+                    <div class="code-display" id="yapeCodeText">-</div>
+                    <div class="yape-warning">Sin este código exacto en tu Yape no podremos validar tu jugada si resultaras ganador.</div>
+                    <button type="button" class="copy-btn" onclick="copyYapeCode()">📋 Copiar Mensaje</button>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">Finalizar Registro</button>
+                <button type="button" class="secondary-menu-btn" style="margin-top: 10px;" onclick="switchScreen('menuScreen')">⬅️ Volver al Menú</button>
+            </form>
+        </div>
+
+        <!-- PANTALLA 3: RECLAMAR PREMIO -->
+        <div id="claimScreen" class="screen">
+            <div class="section-title">Reclamar Premio 🏆</div>
+            <form onsubmit="handleClaimSubmit(event)">
+                <div class="form-group">
+                    <label for="claimFecha">Fecha del sorteo</label>
+                    <select id="claimFecha" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="claimCelular">Tu Número de Celular</label>
+                    <input type="tel" id="claimCelular" maxlength="9" inputmode="numeric" placeholder="Ej. 987654321" required>
+                </div>
+                <div class="form-group">
+                    <label for="claimNombre">Nombre</label>
+                    <input type="text" id="claimNombre" placeholder="Tu nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="claimApellido">Apellido</label>
+                    <input type="text" id="claimApellido" placeholder="Tu apellido" required>
+                </div>
+
+                <div class="section-title" style="margin-top: 20px;">Tus 3 números con los que ganaste</div>
+                <div class="counter-info" id="claimCounterText">Seleccionados: 0 / 3</div>
+
+                <div class="grid-numbers" id="claimNumberGrid"></div>
+
+                <button type="submit" class="winner-claim-btn" style="margin-top: 15px;">🚀 Enviar Reclamo por WhatsApp</button>
+                <button type="button" class="secondary-menu-btn" style="margin-top: 10px;" onclick="switchScreen('menuScreen')">⬅️ Volver al Menú</button>
+            </form>
+        </div>
+
+        <!-- PANTALLA 4: RESUMEN -->
+        <div id="successScreen" class="screen">
+            <h2>¡Registro Listo!</h2>
+            <p style="font-size: 0.88rem; margin-top: 6px;">Envía tu comprobante y este resumen por WhatsApp para validar tu jugada:</p>
+
+            <div class="summary-card">
+                <ul>
+                    <li><span>Sorteo:</span> <strong id="resFecha">-</strong></li>
+                    <li><span>Celular:</span> <strong id="resCelular">-</strong></li>
+                    <li><span>Nombre:</span> <strong id="resNombre">-</strong></li>
+                    <li><span>Números:</span> <strong id="resNumeros" style="color: var(--gold);">-</strong></li>
+                    <li><span>Yape:</span> <strong id="resYapeMsg" style="color: #b45309; font-family: monospace; font-size: 0.8rem;">-</strong></li>
+                </ul>
+            </div>
+
+            <a href="#" id="whatsappBtn" target="_blank" rel="noopener" class="whatsapp-wsp-btn">💬 Enviar Resumen y Voucher por WhatsApp</a>
+            <button type="button" class="secondary-menu-btn" style="margin-top: 15px;" onclick="resetForm(); switchScreen('menuScreen')">🏠 Ir al Inicio</button>
+        </div>
+
+        <!-- PANTALLA 5: HISTORIAL -->
+        <div id="historyScreen" class="screen">
+            <div class="section-title">Historial de Sorteos</div>
+            <div id="historyListContainer" style="max-height: 280px; overflow-y: auto; margin-bottom: 15px;"></div>
+            <button type="button" class="winner-claim-btn" onclick="switchScreen('claimScreen')">🏆 Soy Ganador y Quiero Reclamar</button>
+            <button type="button" class="secondary-menu-btn" style="margin-top: 5px;" onclick="switchScreen('menuScreen')">⬅️ Volver al Menú</button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    /* ================== CONFIGURACIÓN ================== */
+    const NUMERO_ADMIN = "51955480091";   // WhatsApp que recibe registros y reclamos
+    const HORA_SORTEO = 23;               // 23 = 11:00 PM hora de Perú
+    const MINUTOS_CIERRE = 15;            // Las inscripciones cierran 15 min antes
+    const ARCHIVO_RESULTADOS = "resultados.json";
+
+    /* ================== HORA DE PERÚ ==================
+       Perú es UTC-5 todo el año (sin horario de verano), así que
+       calculamos la hora de Lima sin depender del reloj/zona del celular. */
+    const OFFSET_LIMA_MS = -5 * 60 * 60 * 1000;
+
+    function ahoraLima() {
+        // Fecha "desplazada": se leen sus valores con getUTC* para obtener la hora de Lima
+        return new Date(Date.now() + OFFSET_LIMA_MS);
+    }
+    function isoDe(d) { return d.toISOString().slice(0, 10); }
+    function fechaLimaHoy() { return isoDe(ahoraLima()); }
+
+    function minutosDelDia(d) { return d.getUTCHours() * 60 + d.getUTCMinutes(); }
+    const MINUTO_CIERRE = HORA_SORTEO * 60 - MINUTOS_CIERRE;
+
+    // Fecha del sorteo al que entra una inscripción hecha AHORA
+    function fechaSorteoAbierto() {
+        const l = ahoraLima();
+        if (minutosDelDia(l) >= MINUTO_CIERRE) {
+            return isoDe(new Date(l.getTime() + 24 * 60 * 60 * 1000));
+        }
+        return isoDe(l);
+    }
+
+    function fechaBonita(iso) {
+        const [y, m, d] = iso.split('-').map(Number);
+        return new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString('es-PE', {
+            weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC'
+        });
+    }
+
+    function horaCierreTexto() {
+        const h = Math.floor(MINUTO_CIERRE / 60), m = MINUTO_CIERRE % 60;
+        const h12 = ((h + 11) % 12) + 1;
+        return `${h12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+    }
+
+    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('es-PE', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Lima'
+    });
+    document.querySelectorAll('.cierreTexto').forEach(el => el.innerText = `${MINUTOS_CIERRE} minutos`);
+    document.getElementById('cierreInfo').innerText = `Inscripciones hasta las ${horaCierreTexto()}`;
+
+    /* ================== RESULTADOS OFICIALES ==================
+       Los números ganadores NO se generan aquí. Los publica el administrador
+       en resultados.json después del sorteo en vivo, así todos ven lo mismo. */
+    let resultados = [];
+    let resultadosOk = false;
+
+    async function cargarResultados() {
+        try {
+            const r = await fetch(`${ARCHIVO_RESULTADOS}?v=${Date.now()}`, { cache: 'no-store' });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const data = await r.json();
+            resultados = data
+                .filter(x => x && x.fecha && Array.isArray(x.numeros) && x.numeros.length === 3)
+                .map(x => ({ ...x, numeros: [...x.numeros].sort((a, b) => a - b) }))
+                .sort((a, b) => b.fecha.localeCompare(a.fecha));
+            resultadosOk = true;
+        } catch (e) {
+            resultadosOk = false;
+        }
+        pintarGanadorHoy();
+        llenarFechasReclamo();
+    }
+
+    function pintarGanadorHoy() {
+        const status = document.getElementById('winnerStatusMsg');
+        const balls = document.getElementById('winnerBallsContainer');
+        const proof = document.getElementById('proofContainer');
+        proof.innerHTML = '';
+
+        const hoy = fechaLimaHoy();
+        const res = resultados.find(r => r.fecha === hoy);
+        const yaPasoLaHora = ahoraLima().getUTCHours() >= HORA_SORTEO;
+
+        if (res) {
+            status.innerText = "✅ Resultado oficial de hoy";
+            balls.innerHTML = res.numeros.map(n => `<div class="winner-ball">${n}</div>`).join('');
+            if (res.video) {
+                const a = document.createElement('a');
+                a.href = res.video; a.target = '_blank'; a.rel = 'noopener';
+                a.className = 'proof-link'; a.innerText = '🎥 Ver video del sorteo';
+                proof.appendChild(a);
+            }
+            return;
+        }
+
+        balls.innerHTML = '<div class="winner-ball">?</div>'.repeat(3);
+        if (!resultadosOk) status.innerText = "No se pudieron cargar los resultados. Intenta recargar.";
+        else if (yaPasoLaHora) status.innerText = "🎥 Sorteo en curso, el resultado oficial se publicará en breve...";
+        else status.innerText = "El sorteo se realizará hoy a las 11:00 PM";
+    }
+
+    function loadHistory() {
+        const container = document.getElementById('historyListContainer');
+        if (!resultadosOk) {
+            container.innerHTML = '<div class="empty-msg">No se pudo cargar el historial.</div>';
+            return;
+        }
+        if (resultados.length === 0) {
+            container.innerHTML = '<div class="empty-msg">Aún no hay sorteos publicados.</div>';
+            return;
+        }
+        container.innerHTML = resultados.map(item => `
+            <div class="history-item">
+                <div class="history-top">
+                    <span>📅 ${fechaBonita(item.fecha)}</span>
+                    ${item.video ? `<a class="proof-link" href="${encodeURI(item.video)}" target="_blank" rel="noopener">🎥 Video</a>` : ''}
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.78rem;">Ganadores:</span>
+                    <div class="history-balls">
+                        ${item.numeros.map(n => `<div class="h-ball">${Number(n)}</div>`).join('')}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function llenarFechasReclamo() {
+        const sel = document.getElementById('claimFecha');
+        const anterior = sel.value;
+        sel.innerHTML = resultados.length
+            ? resultados.map(r => `<option value="${r.fecha}">${fechaBonita(r.fecha)}</option>`).join('')
+            : '<option value="">Aún no hay sorteos publicados</option>';
+        if (resultados.some(r => r.fecha === anterior)) sel.value = anterior;
+    }
+
+    /* ================== CONTADOR ================== */
+    function updateCountdown() {
+        const l = ahoraLima();
+        const target = new Date(Date.UTC(l.getUTCFullYear(), l.getUTCMonth(), l.getUTCDate(), HORA_SORTEO));
+        if (l >= target) target.setUTCDate(target.getUTCDate() + 1);
+
+        const diff = target - l;
+        const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+        const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+        const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+        document.getElementById('countdownTimer').innerText = `${h}:${m}:${s}`;
+
+        actualizarAvisoInscripcion();
+    }
+
+    function actualizarAvisoInscripcion() {
+        const notice = document.getElementById('drawNotice');
+        const fecha = fechaSorteoAbierto();
+        const esHoy = fecha === fechaLimaHoy();
+        notice.className = 'notice' + (esHoy ? '' : ' closed');
+        notice.innerText = esHoy
+            ? `Tu jugada participa en el sorteo de HOY (${fechaBonita(fecha)}) a las 11:00 PM.`
+            : `Las inscripciones de hoy ya cerraron. Tu jugada participará en el sorteo de ${fechaBonita(fecha)} a las 11:00 PM.`;
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+    cargarResultados();
+    setInterval(cargarResultados, 60 * 1000); // revisa cada minuto si ya se publicó el resultado
+
+    /* ================== NAVEGACIÓN ================== */
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        if (screenId === 'historyScreen') loadHistory();
+        window.scrollTo(0, 0);
+    }
+
+    /* ================== GRILLAS DE NÚMEROS ================== */
+    const grid = document.getElementById('numberGrid');
+    const claimGrid = document.getElementById('claimNumberGrid');
+    const selectedNumbers = [];
+    const claimSelectedNumbers = [];
+    let isConfirmed = false;
+    let jugadaConfirmada = null; // datos congelados al confirmar
+
+    function crearGrilla(contenedor, arreglo, counterId, bloqueada) {
+        for (let i = 1; i <= 20; i++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'num-btn';
+            btn.innerText = i;
+            btn.onclick = () => {
+                if (bloqueada()) return;
+                toggleNumber(i, btn, arreglo, counterId);
+            };
+            contenedor.appendChild(btn);
+        }
+    }
+    crearGrilla(grid, selectedNumbers, 'counterText', () => isConfirmed);
+    crearGrilla(claimGrid, claimSelectedNumbers, 'claimCounterText', () => false);
+
+    function toggleNumber(num, btn, arrayTarget, counterId) {
+        const index = arrayTarget.indexOf(num);
+        if (index > -1) {
+            arrayTarget.splice(index, 1);
+            btn.classList.remove('selected');
+        } else if (arrayTarget.length < 3) {
+            arrayTarget.push(num);
+            btn.classList.add('selected');
+        } else {
+            alert('Solo puedes seleccionar exactamente 3 números.');
+        }
+        document.getElementById(counterId).innerText = `Seleccionados: ${arrayTarget.length} / 3`;
+    }
+
+    function celularValido(c) { return /^9\d{8}$/.test(c); }
+    function limpiarTexto(t) { return t.trim().replace(/\s+/g, ' '); }
+    function iniciales(t) {
+        return t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-zÑñ]/g, '').substring(0, 3).toUpperCase();
+    }
+
+    function setDatosBloqueados(bloquear) {
+        ['celular', 'nombre', 'apellido'].forEach(id => document.getElementById(id).disabled = bloquear);
+        grid.classList.toggle('locked', bloquear);
+    }
+
+    function confirmNumbers() {
+        const celular = document.getElementById('celular').value.trim();
+        const nombre = limpiarTexto(document.getElementById('nombre').value);
+        const apellido = limpiarTexto(document.getElementById('apellido').value);
+
+        if (!celularValido(celular)) { alert('Ingresa un celular válido de 9 dígitos que empiece con 9.'); return; }
+        if (!nombre || !apellido) { alert('Por favor ingresa tu nombre y apellido.'); return; }
+        if (selectedNumbers.length !== 3) { alert('Debes seleccionar exactamente 3 números antes de confirmar.'); return; }
+
+        const fecha = fechaSorteoAbierto();
+        const nums = [...selectedNumbers].sort((a, b) => a - b);
+        const [y, m, d] = fecha.split('-');
+        // Código: NOM-APE-CELULAR-N1-N2-N3-DDMM (DDMM = día del sorteo en que participa)
+        const yapeMessage = `${iniciales(nombre)}-${iniciales(apellido)}-${celular}-${nums.join('-')}-${d}${m}`;
+
+        jugadaConfirmada = { fecha, celular, nombre, apellido, nums, yapeMessage };
+        isConfirmed = true;
+        setDatosBloqueados(true);
+
+        document.getElementById('yapeCodeText').innerText = yapeMessage;
+        document.getElementById('yapeBox').style.display = 'block';
+        document.getElementById('submitBtn').style.display = 'block';
+        document.getElementById('editBtn').style.display = 'block';
+        document.getElementById('confirmBtn').style.display = 'none';
+    }
+
+    function editNumbers() {
+        isConfirmed = false;
+        jugadaConfirmada = null;
+        setDatosBloqueados(false);
+        document.getElementById('yapeBox').style.display = 'none';
+        document.getElementById('submitBtn').style.display = 'none';
+        document.getElementById('editBtn').style.display = 'none';
+        document.getElementById('confirmBtn').style.display = 'block';
+    }
+
+    function copyYapeCode() {
+        const text = document.getElementById('yapeCodeText').innerText;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text)
+                .then(() => alert('¡Mensaje copiado para el Yape!'))
+                .catch(() => prompt('Copia este mensaje:', text));
+        } else {
+            prompt('Copia este mensaje:', text);
+        }
+    }
+
+    function handleFinalSubmit(event) {
+        event.preventDefault();
+        if (!isConfirmed || !jugadaConfirmada) { alert('Primero confirma tus números.'); return; }
+
+        // Si el cierre pasó mientras llenaba el formulario, el código ya no corresponde
+        if (fechaSorteoAbierto() !== jugadaConfirmada.fecha) {
+            alert('Las inscripciones para ese sorteo ya cerraron. Tu jugada se pasará al siguiente sorteo; confirma de nuevo para generar el código correcto.');
+            editNumbers();
+            return;
+        }
+
+        const j = jugadaConfirmada;
+        document.getElementById('resFecha').innerText = `${fechaBonita(j.fecha)}, 11 PM`;
+        document.getElementById('resCelular').innerText = j.celular;
+        document.getElementById('resNombre').innerText = `${j.nombre} ${j.apellido}`;
+        document.getElementById('resNumeros').innerText = j.nums.join(', ');
+        document.getElementById('resYapeMsg').innerText = j.yapeMessage;
+
+        const textoWsp = `Hola, acabo de registrarme para el sorteo del ${fechaBonita(j.fecha)} a las 11 PM:\n\n*Celular:* ${j.celular}\n*Nombre:* ${j.nombre} ${j.apellido}\n*Números:* ${j.nums.join(', ')}\n*Mensaje Yape:* ${j.yapeMessage}\n\nAdjunto mi comprobante de pago:`;
+        document.getElementById('whatsappBtn').href = `https://wa.me/${NUMERO_ADMIN}?text=${encodeURIComponent(textoWsp)}`;
+
+        switchScreen('successScreen');
+    }
+
+    function resetForm() {
+        editNumbers();
+        document.getElementById('participationForm').reset();
+        selectedNumbers.length = 0;
+        grid.querySelectorAll('.num-btn').forEach(b => b.classList.remove('selected'));
+        document.getElementById('counterText').innerText = 'Seleccionados: 0 / 3';
+    }
+
+    function handleClaimSubmit(event) {
+        event.preventDefault();
+        const fecha = document.getElementById('claimFecha').value;
+        const celular = document.getElementById('claimCelular').value.trim();
+        const nombre = limpiarTexto(document.getElementById('claimNombre').value);
+        const apellido = limpiarTexto(document.getElementById('claimApellido').value);
+
+        if (!fecha) { alert('Aún no hay sorteos publicados para reclamar.'); return; }
+        if (!celularValido(celular)) { alert('Ingresa un celular válido de 9 dígitos.'); return; }
+        if (!nombre || !apellido) { alert('Por favor ingresa tu nombre y apellido.'); return; }
+        if (claimSelectedNumbers.length !== 3) { alert('Selecciona los 3 números con los que jugaste.'); return; }
+
+        const oficial = resultados.find(r => r.fecha === fecha);
+        const nums = [...claimSelectedNumbers].sort((a, b) => a - b);
+        if (!oficial || oficial.numeros.join('-') !== nums.join('-')) {
+            alert(`Tus números (${nums.join(', ')}) no coinciden con el resultado oficial de ese día (${oficial ? oficial.numeros.join(', ') : '-'}).`);
+            return;
+        }
+
+        const [y, m, d] = fecha.split('-');
+        const codigo = `${iniciales(nombre)}-${iniciales(apellido)}-${celular}-${nums.join('-')}-${d}${m}`;
+        const textoWsp = `¡Hola! Soy ganador del sorteo del ${fechaBonita(fecha)} y quiero reclamar mi premio:\n\n*Celular:* ${celular}\n*Nombre:* ${nombre} ${apellido}\n*Números:* ${nums.join(', ')}\n*Código de mi Yape:* ${codigo}\n\nQuedo a la espera de la validación.`;
+        window.open(`https://wa.me/${NUMERO_ADMIN}?text=${encodeURIComponent(textoWsp)}`, '_blank');
+    }
+</script>
+
+</body>
+</html>
