@@ -1,5 +1,6 @@
 [
-  { "fecha": "2026-11-09", "numeros": [ ], "video": "https://t.me/+lvOyCDlt1LYyZjVh" },
+  { "fecha": "2026-11-10", "numeros": [ ], "video": "https://t.me/+lvOyCDlt1LYyZjVh" },
+  {"fecha": "2026-11-09", "numeros": [4, 8, 12]},
   {"fecha": "2026-11-08", "numeros": [1, 5, 7]},
   { "fecha": "2026-11-07", "numeros": [2, 12, 20] },
   { "fecha": "2026-11-06", "numeros": [7, 9, 10] },
